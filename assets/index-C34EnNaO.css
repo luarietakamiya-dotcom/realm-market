@@ -28,11 +28,12 @@ body{
       rgba(255,240,250,0.25),
       rgba(240,248,255,0.25)
     ),
-    url("/forest_background.png") !important;
+    url("../forest_background.png") !important;
   background-size: cover !important;
   background-position: center top !important;
   background-repeat: no-repeat !important;
   background-attachment: fixed !important;
+
   color: var(--text-primary);
   font-family: var(--font-body);
   line-height:1.6;
@@ -42,6 +43,7 @@ body{
   position:relative;
   overflow-x:hidden;
 }
+
 
 .ambient-light{display:none}
 
