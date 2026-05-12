@@ -22,13 +22,17 @@
 }
 
 body{
-  background-color: var(--bg-main);
+  background-color: #fff1fa !important;
   background-image:
-    linear-gradient(rgba(255,240,250,0.55), rgba(240,248,255,0.55)),
+    linear-gradient(
+      rgba(255,240,250,0.25),
+      rgba(240,248,255,0.25)
+    ),
     url("/forest_background.png") !important;
-  background-size: cover;
-  background-position: center top;
-  background-attachment: fixed;
+  background-size: cover !important;
+  background-position: center top !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
   color: var(--text-primary);
   font-family: var(--font-body);
   line-height:1.6;
