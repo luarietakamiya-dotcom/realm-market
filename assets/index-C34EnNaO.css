@@ -24,10 +24,11 @@
 body{
   background-color: var(--bg-main);
   background-image:
-    radial-gradient(circle at 15% 20%, rgba(255,182,230,0.4) 0%, transparent 40%),
-    radial-gradient(circle at 85% 10%, rgba(196,132,252,0.3) 0%, transparent 35%),
-    radial-gradient(circle at 50% 80%, rgba(110,231,183,0.2) 0%, transparent 40%),
-    radial-gradient(circle at 90% 75%, rgba(255,155,107,0.25) 0%, transparent 35%);
+    linear-gradient(rgba(255,240,250,0.55), rgba(240,248,255,0.55)),
+    url(./forest_background.png);
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
   color: var(--text-primary);
   font-family: var(--font-body);
   line-height:1.6;
@@ -54,14 +55,14 @@ body{
   margin-bottom:16px;
 }
 .site-logo{
-  max-width:300px;
+  max-width:560px;
   height:auto;
-  filter: drop-shadow(0 4px 16px rgba(255,107,174,0.3));
+  filter: drop-shadow(0 4px 20px rgba(255,107,174,0.25));
   transition:transform .4s ease, filter .4s ease;
 }
 .site-logo:hover{
-  transform:scale(1.04) rotate(-1deg);
-  filter: drop-shadow(0 6px 24px rgba(255,107,174,0.5));
+  transform:scale(1.03) rotate(-0.5deg);
+  filter: drop-shadow(0 6px 28px rgba(255,107,174,0.4));
 }
 
 .header-area{
