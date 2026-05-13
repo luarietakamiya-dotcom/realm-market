@@ -116,7 +116,8 @@ async function insertProduct(product) {
     price: Number(product.price || 0),
     category: product.category,
     image_url: product.image,
-    creator: product.creator
+    creator: product.creator,
+    owner_id: getUser().id
   };
 
   const response = await fetch(PRODUCTS_ENDPOINT, {
@@ -321,7 +322,7 @@ function profileHtml(products) {
       <div class="profile-intro">
         <h2 style="font-family: var(--font-heading); margin-bottom: 12px; font-weight: normal;">記録の書</h2>
         <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 20px;">
-          ここではあなたの足跡を辿ることができます。
+          ここでは、受け取ったもの、イイネしたもの、出品したものを確認できます。
         </div>
         <div class="form-group" style="max-width: 400px;">
           <label>閲覧者の名前を変更する</label>
@@ -329,12 +330,12 @@ function profileHtml(products) {
             <input id="input-username" class="form-control" type="text" style="flex-grow: 1;" value="${escapeHtml(user.displayName)}" />
             <button type="button" id="btn-save-username" class="btn-primary" style="padding: 10px 16px; font-size: 0.9rem;">更新</button>
           </div>
-          <small style="color: var(--text-muted); font-size: 0.75rem; margin-top: 4px;">※ パスワードがある場合はここに入力してください</small>
+          <small style="color: var(--text-muted); font-size: 0.75rem; margin-top: 4px;">※ 名前を変えると、名前だけで判定している古い出品の表示に影響することがあります</small>
         </div>
       </div>
       <div class="profile-nav">
-         <button class="btn-subnav ${profileTab === "listed" ? "active" : ""}" data-tab="listed">出品リスト</button>
-         <button class="btn-subnav ${profileTab === "purchased" ? "active" : ""}" data-tab="purchased">購入履歴</button>
+         <button class="btn-subnav ${profileTab === "listed" ? "active" : ""}" data-tab="listed">出品したもの</button>
+         <button class="btn-subnav ${profileTab === "purchased" ? "active" : ""}" data-tab="purchased">受け取り履歴</button>
          <button class="btn-subnav ${profileTab === "liked" ? "active" : ""}" data-tab="liked">イイネ</button>
       </div>
       <div class="profile-content">${content}</div>
