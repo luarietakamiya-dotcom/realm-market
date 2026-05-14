@@ -1,6 +1,8 @@
 const SUPABASE_URL = "https://rgxgyctjldxaussfnpoa.supabase.co";
 const SUPABASE_KEY = "sb_publishable__QTQ21rRG0gLV_SySkFOKQ_61b2aqV0";
 const PRODUCTS_ENDPOINT = `${SUPABASE_URL}/rest/v1/products`;
+const STORAGE_BUCKET = "product-images";
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 const storageKeys = {
   USER: "quiet_user",
@@ -148,6 +150,41 @@ async function deleteProduct(id) {
   }
 }
 
+async function uploadProductImage(file) {
+  if (!file) throw new Error("画像ファイルが選択されていません。");
+  if (!file.type || !file.type.startsWith("image/")) {
+    throw new Error("画像ファイルを選択してください。");
+  }
+  if (file.size > MAX_IMAGE_SIZE) {
+    throw new Error("画像サイズは5MB以下にしてください。");
+  }
+
+  const user = getUser();
+  const originalName = file.name || "image.png";
+  const extMatch = originalName.match(/\.([a-zA-Z0-9]+)$/);
+  const ext = extMatch ? extMatch[1].toLowerCase() : "png";
+  const safeExt = ["jpg", "jpeg", "png", "webp", "gif"].includes(ext) ? ext : "png";
+  const filePath = `${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${safeExt}`;
+
+  const safePath = encodeURIComponent(filePath).replace(/%2F/g, "/");
+  const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}/${safePath}`;
+  const response = await fetch(uploadUrl, {
+    method: "POST",
+    headers: apiHeaders({
+      "Content-Type": file.type,
+      "x-upsert": "false"
+    }),
+    body: file
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `画像アップロードエラー: ${response.status}`);
+  }
+
+  return `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${safePath}`;
+}
+
 function toast(message) {
   const layer = document.getElementById("toast-layer");
   if (!layer) return;
@@ -228,7 +265,7 @@ function rulesNoticeHtml() {
       節度を守り、製作者に敬意を払って使用しましょう。<br><br>
       登録できる画像は、自分で作成した画像のみです。<br>
       また、フリー素材として配布しても問題ない画像だけを登録してください。<br><br>
-      画像ファイルはXなど外部に投稿し、その画像URLを貼って出品してください。<br>
+      出品時に画像ファイルをアップロードできます。<br>
       画像を使うときは、商品画像を右クリックして保存するのが正しい受け取り方です。<br>
       「受け取る」ボタンはRP用の演出で、実際のダウンロード機能ではありません。
     </div>
@@ -265,7 +302,7 @@ function addFormHtml() {
     <div class="rules-notice">
       登録者は自分で作った画像のみを登録してください。<br>
       登録した画像はフリー素材として配布するものとします。<br>
-      画像はXなど外部に投稿し、その画像URLを貼ってください。
+      画像は5MB以下推奨です。jpg / png / webp / gif に対応しています。
     </div>
     <form class="form-area" id="add-form">
       <div class="form-group">
@@ -294,8 +331,8 @@ function addFormHtml() {
         </select>
       </div>
       <div class="form-group">
-        <label>画像URL</label>
-        <input name="image" class="form-control" type="url" placeholder="https://..." required />
+        <label>画像ファイル</label>
+        <input name="image_file" class="form-control" type="file" accept="image/*" required />
       </div>
       <button type="submit" class="btn-primary form-submit">虚空へ捧げる</button>
     </form>
@@ -376,23 +413,32 @@ function buyProduct(product) {
 async function handleAddProduct(event) {
   event.preventDefault();
   const form = event.target;
+  const imageFile = form.image_file && form.image_file.files ? form.image_file.files[0] : null;
+
   const product = {
     name: form.name.value.trim(),
     description: form.desc.value.trim(),
     price: parseInt(form.price.value, 10),
     category: form.category.value,
-    image: form.image.value.trim(),
+    image: "",
     creator: form.creator_name.value.trim()
   };
 
-  if (!product.name || !product.description || Number.isNaN(product.price) || !product.creator || !product.image) {
-    toast("未入力の項目があります。");
+  if (!product.name || !product.description || Number.isNaN(product.price) || !product.creator || !imageFile) {
+    toast("未入力の項目があります。画像ファイルも選択してください。");
     return;
   }
 
   const submitButton = form.querySelector('button[type="submit"]');
-  if (submitButton) submitButton.disabled = true;
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.innerText = "アップロード中...";
+  }
+
   try {
+    const imageUrl = await uploadProductImage(imageFile);
+    product.image = imageUrl;
+
     await insertProduct(product);
     const user = getUser();
     user.coins += 100;
@@ -402,9 +448,12 @@ async function handleAddProduct(event) {
     await render();
   } catch (error) {
     console.error(error);
-    toast("出品に失敗しました。Supabase設定を確認してください。");
+    toast(error.message || "出品に失敗しました。Supabase設定を確認してください。");
   } finally {
-    if (submitButton) submitButton.disabled = false;
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.innerText = "虚空へ捧げる";
+    }
   }
 }
 
